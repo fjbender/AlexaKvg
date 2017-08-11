@@ -38,6 +38,7 @@ class StopController extends Controller
         $departures = json_decode($kvg->getDepartures($stop), true);
         $naturalResponse = "Abfahrten an der Haltestelle " . $departures['stopName'] . "<br>";
         foreach ($departures['actual'] as $departure) {
+            $departure = str_replace("%UNIT_MIN%", "Minuten", $departure);
             $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] . " in " . $departure['mixedTime'] . "<br>";
         }
         return new Response($naturalResponse);
