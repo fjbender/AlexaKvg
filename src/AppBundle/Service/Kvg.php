@@ -56,15 +56,15 @@ class Kvg
      */
     public function getDeparturesNatural($stop) {
         $departures = json_decode($this->getDepartures($stop), true);
-        $naturalResponse = "Abfahrten an der Haltestelle " . $departures['stopName'] . "\n";
+        $naturalResponse = "Abfahrten an der Haltestelle " . $departures['stopName'] . ". ";
         foreach ($departures['actual'] as $departure) {
             $departure = str_replace("%UNIT_MIN%", "Minuten", $departure);
             if ($departure['status'] == self::KVG_STATUS_PREDICTED) {
                 $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] .
-                    " in " . $departure['mixedTime'] . "\n";
+                    " in " . $departure['mixedTime'] . ". ";
             } else {
                 $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] .
-                    " um " . $departure['mixedTime'] . "\n";
+                    " um " . $departure['mixedTime'] . ". ";
             }
         }
         return $naturalResponse;
