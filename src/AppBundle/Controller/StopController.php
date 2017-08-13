@@ -8,12 +8,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Alexa\Request\IntentRequest;
+use Alexa\Response\Response as AlexaResponse;
 
 
 // TODO get arrvials
 class StopController extends Controller
 {
-
     /**
      * @param int $stop
      * @param Kvg $kvg
@@ -35,21 +36,28 @@ class StopController extends Controller
      */
     public function naturalAction($stop, Kvg $kvg, Request $request)
     {
-        $departures = json_decode($kvg->getDepartures($stop), true);
-        $naturalResponse = "Abfahrten an der Haltestelle " . $departures['stopName'] . "<br>";
-        foreach ($departures['actual'] as $departure) {
-            $departure = str_replace("%UNIT_MIN%", "Minuten", $departure);
-            $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] . " in " . $departure['mixedTime'] . "<br>";
-        }
-        return new Response($naturalResponse);
+        return new Response($kvg->getDeparturesNatural($stop));
     }
 
     /**
+     * @param Kvg $kvg
      * @param Request $request
+     * @return JsonResponse|Response
      * @Route("/stop/alexa", name="alexaStop")
      */
-    public function alexaAction(Request $request)
+    public function alexaAction(Kvg $kvg, Request $request)
     {
-        // stub
+        // TODO put this somewhere sensible
+        $applicationId = "amzn1.ask.skill.b1a7d4cc-4ee2-4979-aca7-6de54e753231";
+        $rawRequest = $request->getContent();
+        $alexaRequestFactory = new \Alexa\Request\RequestFactory();
+        $alexaRequest = $alexaRequestFactory->fromRawData($rawRequest, [$applicationId]);
+        if ($alexaRequest instanceof IntentRequest) {
+            $response = new AlexaResponse();
+            $response->endSession(true);
+            $response->respond($kvg->getDeparturesNatural(363)); // todo get stop id from alexa
+            return new JsonResponse($response->render());
+        }
+        return new Response("Nee", 500);
     }
 }

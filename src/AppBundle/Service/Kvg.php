@@ -11,6 +11,8 @@ class Kvg
     const KVG_MODE_PARAM = "mode";
     const KVG_MODE_DEPARTURE = "departure";
     const KVG_MODE_ARRIVAL = "arrival";
+    const KVG_STATUS_PREDICTED = "PREDICTED";
+    const KVG_STATUS_PLANNED = "PLANNED";
 
     public function __construct()
     {
@@ -19,16 +21,52 @@ class Kvg
 
     /**
      * @param int $stop
-     * @return string
-     * TODO set stop dynamically
-     * TODO allow for arrivals, build generic requester
+     * @return \Psr\Http\Message\StreamInterface
      */
-    public function getDepartures($stop = 250)
+    public function getDepartures($stop)
     {
+        return $this->getInfo($stop, self::KVG_MODE_DEPARTURE);
+    }
+
+    /**
+     * @param int $stop
+     * @return \Psr\Http\Message\StreamInterface
+     */
+    public function getArrivals($stop)
+    {
+        return $this->getInfo($stop, self::KVG_MODE_ARRIVAL);
+    }
+
+    /**
+     * @param int $stop
+     * @param string $mode
+     * @return \Psr\Http\Message\StreamInterface
+     */
+    private function getInfo($stop, $mode) {
         $client = new Client();
         $response = $client->request("GET",
             self::KVG_URL . "?" . self::KVG_STOP_PARAM . "=" . $stop .
-            "&" . self::KVG_MODE_PARAM . "=" . self::KVG_MODE_DEPARTURE);
+            "&" . self::KVG_MODE_PARAM . "=" . $mode);
         return $response->getBody();
+    }
+
+    /**
+     * @param int $stop
+     * @return string
+     */
+    public function getDeparturesNatural($stop) {
+        $departures = json_decode($this->getDepartures($stop), true);
+        $naturalResponse = "Abfahrten an der Haltestelle " . $departures['stopName'] . "<br>";
+        foreach ($departures['actual'] as $departure) {
+            $departure = str_replace("%UNIT_MIN%", "Minuten", $departure);
+            if ($departure['status'] == self::KVG_STATUS_PREDICTED) {
+                $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] .
+                    " in " . $departure['mixedTime'] . "<br>";
+            } else {
+                $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] .
+                    " um " . $departure['mixedTime'] . "<br>";
+            }
+        }
+        return $naturalResponse;
     }
 }
