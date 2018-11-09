@@ -55,18 +55,23 @@ class Kvg
      * @return string
      */
     public function getDeparturesNatural($stop) {
-        $departures = json_decode($this->getDepartures($stop), true);
-        $naturalResponse = "Abfahrten an der Haltestelle " . $departures['stopName'] . ". ";
-        foreach ($departures['actual'] as $departure) {
-            $departure = str_replace("%UNIT_MIN%", "Minuten", $departure);
-            if ($departure['status'] == self::KVG_STATUS_PREDICTED) {
-                $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] .
-                    " in " . $departure['mixedTime'] . ". ";
-            } else {
-                $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] .
-                    " um " . $departure['mixedTime'] . ". ";
+        try {
+            $departures = json_decode($this->getDepartures($stop), true);
+            $naturalResponse = "Abfahrten an der Haltestelle " . $departures['stopName'] . ". ";
+            foreach ($departures['actual'] as $departure) {
+                $departure = str_replace("%UNIT_MIN%", "Minuten", $departure);
+                if ($departure['status'] == self::KVG_STATUS_PREDICTED) {
+                    $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] .
+                        " in " . $departure['mixedTime'] . ". ";
+                } else {
+                    $naturalResponse .= "Linie " . $departure['patternText'] . " Richtung " . $departure['direction'] .
+                        " um " . $departure['mixedTime'] . ". ";
+                }
             }
+        } catch (\Exception $e) {
+            $naturalResponse = "Entschuldigung. Es ist ein Fehler aufgetreten.";
         }
+
         return $naturalResponse;
     }
 }
