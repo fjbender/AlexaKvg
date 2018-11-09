@@ -22,8 +22,9 @@ class Kvg
     /**
      * @param int $stop
      * @return \Psr\Http\Message\StreamInterface
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getDepartures($stop)
+    public function getDepartures(int $stop): \Psr\Http\Message\StreamInterface
     {
         return $this->getInfo($stop, self::KVG_MODE_DEPARTURE);
     }
@@ -31,8 +32,9 @@ class Kvg
     /**
      * @param int $stop
      * @return \Psr\Http\Message\StreamInterface
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getArrivals($stop)
+    public function getArrivals(int $stop): \Psr\Http\Message\StreamInterface
     {
         return $this->getInfo($stop, self::KVG_MODE_ARRIVAL);
     }
@@ -41,8 +43,9 @@ class Kvg
      * @param int $stop
      * @param string $mode
      * @return \Psr\Http\Message\StreamInterface
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    private function getInfo($stop, $mode) {
+    private function getInfo(int $stop, string $mode): \Psr\Http\Message\StreamInterface {
         $client = new Client();
         $response = $client->request("GET",
             self::KVG_URL . "?" . self::KVG_STOP_PARAM . "=" . $stop .
@@ -53,8 +56,9 @@ class Kvg
     /**
      * @param int $stop
      * @return string
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getDeparturesNatural($stop) {
+    public function getDeparturesNatural(int $stop): string {
         try {
             $departures = json_decode($this->getDepartures($stop), true);
             $naturalResponse = "Abfahrten an der Haltestelle " . $departures['stopName'] . ". ";

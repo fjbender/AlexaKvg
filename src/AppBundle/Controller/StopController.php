@@ -20,9 +20,10 @@ class StopController extends Controller
      * @param Kvg $kvg
      * @param Request $request
      * @return JsonResponse
+     * @throws \GuzzleHttp\Exception\GuzzleException
      * @Route("/stop/{stop}/json", name="jsonStop")
      */
-    public function jsonAction($stop, Kvg $kvg, Request $request)
+    public function jsonAction(int $stop, Kvg $kvg, Request $request): JsonResponse
     {
         return new JsonResponse(json_decode($kvg->getDepartures($stop), true), 200);
     }
@@ -32,9 +33,10 @@ class StopController extends Controller
      * @param Kvg $kvg
      * @param Request $request
      * @return Response
+     * @throws \GuzzleHttp\Exception\GuzzleException
      * @Route("/stop/{stop}/natural", name="naturalStop")
      */
-    public function naturalAction($stop, Kvg $kvg, Request $request)
+    public function naturalAction(int $stop, Kvg $kvg, Request $request): Response
     {
         return new Response($kvg->getDeparturesNatural($stop));
     }
@@ -42,22 +44,24 @@ class StopController extends Controller
     /**
      * @param Kvg $kvg
      * @param Request $request
-     * @return JsonResponse|Response
+     * @return JsonResponse
+     * @throws \GuzzleHttp\Exception\GuzzleException
      * @Route("/stop/alexa", name="alexaStop")
      */
-    public function alexaAction(Kvg $kvg, Request $request)
+    public function alexaAction(Kvg $kvg, Request $request): JsonResponse
     {
         // TODO put this somewhere sensible
         $applicationId = "amzn1.ask.skill.b1a7d4cc-4ee2-4979-aca7-6de54e753231";
         $rawRequest = $request->getContent();
         $alexaRequestFactory = new \Alexa\Request\RequestFactory();
         $alexaRequest = $alexaRequestFactory->fromRawData($rawRequest, [$applicationId]);
+        $response = new AlexaResponse();
+        $response->endSession(true);
         if ($alexaRequest instanceof IntentRequest) {
-            $response = new AlexaResponse();
-            $response->endSession(true);
             $response->respond($kvg->getDeparturesNatural(363)); // todo get stop id from alexa
-            return new JsonResponse($response->render());
+        } else {
+            $response->respond("Entschuldigung, das habe ich leider nicht verstanden.");
         }
-        return new Response("Nee", 500);
+        return new JsonResponse($response->render());
     }
 }
